@@ -43,9 +43,15 @@ class Dataset:
 			for i in L_indices:
 				self.L_x.append(self.X[i])
 				self.L_y.append(self.Y[i])
+		self.L_x = np.array(self.L_x)
+		self.L_y = np.array(self.L_y)
+		self.U = np.array(self.U)
+		self.test_x = np.array(self.test_x)
+		self.test_y = np.array(self.test_y)
 
 	def get_data(self):
-		return (self.L_x, self.L_y), self.U, (self.test_x, self.test_y)
+		shuffle = np.random.permutation(self.L_x.shape[0])        
+		return (self.L_x[shuffle], self.L_y[shuffle]), self.U, (self.test_x, self.test_y)
 
 	def numerical_y(self, y):
 		y_uniq = list(Set(y))
