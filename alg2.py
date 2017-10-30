@@ -33,7 +33,6 @@ import argparse
 parser = argparse.ArgumentParser(description='n-view co-learning')
 parser.add_argument('--n_views', type=int)
 parser.add_argument('--dataset', type=str)
-parser.add_argument('--verbose', type=int)
 args = parser.parse_args()
 
 ds = get_dataset(args.dataset, 0.7, 0.25)
@@ -69,9 +68,9 @@ for ind in range(n_views):
 
 # Train models on Labelled Data
 for ind in range(n_views):
-    models[ind].fit(views[ind][0], views[ind][1], epochs=50, batch_size = 4, validation_split = 0.2, verbose=args.verbose)
+    models[ind].fit(views[ind][0], views[ind][1], epochs=50, batch_size = 4, validation_split = 0.2)
               # ,callbacks=[EarlyStopping(monitor='val_acc', patience=5)])
-    print model.evaluate(test_x,test_y)
+    #print model.evaluate(test_x,test_y)
 
 # Run Co-Training Algorithm 1
 # Simple majority voting over all the classifiers for the unlabelled example
@@ -82,24 +81,16 @@ for ind in range(1, n_views):
 changed = True
 pred_modes = []
 preds = np.zeros((U.shape[0], n_views))
-
 for ind in range(n_views):
-    preds[:, ind] = np.argmax(models[ind].predict(U, verbose=args.verbose), axis = 1)
-
-to_plot = []
-num_runs = 0
+    preds[:, ind] = np.argmax(models[ind].predict(U), axis = 1)
 while (changed):
-    if num_runs == 5:
-        break
-    num_runs += 1
     pred_modes = stats.mode(preds, axis=1)[0]
     changed=False
 
     for ind in range(n_views):
-        models[ind].fit(L[0], L[1], epochs=20, batch_size = 4, validation_split = 0.2, verbose=args.verbose)
-
+        models[ind].fit(L[0], L[1], epochs=10, batch_size = 2, validation_split = 0.2)
     for ind in range(n_views):
-        preds[:, ind] = np.argmax(models[ind].predict(U, verbose=args.verbose), axis = 1)
+        preds[:, ind] = np.argmax(models[ind].predict(U), axis = 1)
 
     pred_modes_new = stats.mode(preds, axis=1)[0]
     #print pred_modes_new, "okk"
@@ -110,28 +101,13 @@ while (changed):
         counts = pred_modes_new
         sel = np.array(np.argmax(pred_modes, axis=0), dtype=int)
         sel_one_hot = label_binarize([pred_modes[sel].squeeze()], classes=range(len(L_y[0]) + 1))[:, :-1]
+        print "TOMATO!", sel_one_hot, "POTATO!"
         L[0] = np.concatenate([L[0], U[sel]], axis = 0)
         L[1] = np.concatenate([L[1], sel_one_hot], axis = 0)
-	mask = np.ones(U.shape[0])
-	mask[sel[0]] = 0
-	U = U[mask==1]
-	preds = preds[mask==1]
-	print "Unlabelled pool left:",U.shape[0]
+        U = np.concatenate([U[:sel], U[sel + 1:]], axis=0)
     
-    perfs = []
-    for ind in range(n_views):
-        perf = models[ind].evaluate(test_x,test_y)
-        perfs.append(perf[0])
-    to_plot.append(perfs)
 
-handles = []
-labels = []
-# to_plot = [[1, 2, 3, 5, 6], [2, 2, 3, 3, 4], [3, 3, 3, 0, 1]]
-for ind in range(args.n_views):
-    ys = [x[ind] for x in to_plot]
-    handle, = plt.plot(range(len(to_plot)), ys, marker='o', label = str(ind))
-    handles.append(handle)
-    labels.append('Classifier %d' % ind)
-plt.legend(handles, labels)
-plt.savefig('fig/%s_%d.png' % (args.dataset, args.n_views))
-# plt.show()
+perf = [None for _ in range(n_views)]
+for ind in range(n_views):
+    perf[ind] = model.evaluate(test_x,test_y)
+    print perf[ind]
