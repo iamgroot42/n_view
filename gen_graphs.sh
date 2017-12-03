@@ -1,0 +1,10 @@
+python alg1-graph.py --dataset 'australian' --n_views 5 --verbose 0
+python alg1-graph.py --dataset 'bupa' --n_views 5 --verbose 1
+python alg1-graph.py --dataset 'colic' --n_views 5 --verbose 1
+python alg1-graph.py --dataset 'diabetes' --n_views 5 --verbose 1
+python alg1-graph.py --dataset 'german' --n_views 5 --verbose 1 
+python alg1-graph.py --dataset 'ionosphere' --n_views 5 --verbose 1 
+python alg1-graph.py --dataset 'kr-vs-kp' --n_views 5 --verbose 1 
+python alg1-graph.py --dataset 'tic-tac-toe' --n_views 5 --verbose 1 
+python alg1-graph.py --dataset 'vote' --n_views 5 --verbose 1 
+python alg1-graph.py --dataset 'wdbc' --n_views 5 --verbose 1 
